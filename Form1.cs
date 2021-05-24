@@ -13,11 +13,9 @@ namespace OS_2_ProgressBar
     {
         private static int _n; //значение размера массива данных
 
-        private readonly static bool DEBUG = false; //включение опции дебаггинга
+        private readonly static object block = new();
 
-        private readonly static object block = new(); // создание ключа для 
-
-        private readonly static string FILE_NAME = @"C:\Users\p3n3k\source\repos\OS_2_ProgressBar\ReportFile.txt"; //прописываем путь к файлу для записи результата
+        private readonly static string FILE_NAME = @"D:\6 semestr\Operating System\lab2\OS_2_ProgressBar\ReportFile.txt"; //путь к файлу для записи результата
 
         public Form1()
         {
@@ -28,22 +26,22 @@ namespace OS_2_ProgressBar
         {
             _n = 0; // начальное значение для вычислений        
 
-            if (NInput.Text != "") //проверяем, введено ли значение
+            if (Input.Text != "" && Input.Text  != "0") //проверяем, введено ли значение, отличное от нуля
             {
                 Stopwatch stopWatch = new(); //создание таймера программы
                 stopWatch.Start(); //запуск таймера программы
 
                 //очищаем прогресс бары
                 {
-                    BarA.Value = 0;
-                    BarB.Value = 0;
-                    BarC.Value = 0;
-                    BarD.Value = 0;
-                    BarE.Value = 0;
-                    BarF.Value = 0;
-                    BarG.Value = 0;
-                    BarH.Value = 0;
-                    BarK.Value = 0;
+                    this.A.Value = 0;
+                    this.B.Value = 0;
+                    this.C.Value = 0;
+                    this.D.Value = 0;
+                    this.E.Value = 0;
+                    this.F.Value = 0;
+                    this.G.Value = 0;
+                    this.H.Value = 0;
+                    this.K.Value = 0;
                 }
 
                 ConsoleOutPut(); //вывод строки-разделителя
@@ -55,36 +53,46 @@ namespace OS_2_ProgressBar
                     streamWriter.WriteLine("\t-----------------------------------------");
                 }
 
-                _n = Convert.ToInt32(NInput.Text); //чтение данных от пользователя
+                _n = Convert.ToInt32(Input.Text); //принятие числа введёенного пользователем
 
-                Task<List<List<int>>> Task_A = Task.Run(GenerateM); //запуск задачи A
-                Task<List<bool>> Task_B = Task.Run(GenerateR); //запуск задачи B
-                Task.WaitAll(Task_A, Task_B); //ожидание выполнения парралельной работы
+                Task<List<List<int>>> Task_A = Task.Run(() => Gnrt()); //запуск задачи A
+                List<List<int>> A = Task_A.Result;
+                ConsoleOutPut();
 
+                Task<List<List<int>>> Task_B = Task_A.ContinueWith(Fun1 => F1(A)); //запуск задачи B, после завершения A
+                List<List<int>> B = Task_B.Result;
+                ConsoleOutPut();
+
+                Task<List<List<int>>> Task_C = Task_A.ContinueWith(Fun2 => F2(A)); //запуск задачи C, после завершения A
+                List<List<int>> C = Task_C.Result;
+                ConsoleOutPut();
+
+                Task<List<List<int>>> Task_D = Task_A.ContinueWith(Fun3 => F3(A)); //запуск задачи D, после завершения A
+                List<List<int>> D = Task_D.Result;
+                ConsoleOutPut(); 
+
+                Task<List<List<int>>> Task_E = Task_C.ContinueWith(_Func4 => F4(C)); //запуск задачи E, после завершения C
+                List<List<int>> E = Task_E.Result;
+                ConsoleOutPut(); 
+
+                Task<List<List<int>>> Task_F = Task_C.ContinueWith(_Func5 => F5(C)); //запуск задачи F, после завершения C
+                List<List<int>> F = Task_F.Result;
+                ConsoleOutPut(); 
+
+                Task<List<List<int>>> Task_G = Task_C.ContinueWith(_Func6 => F6(C)); //запуск задачи G, после завершения C
+                List<List<int>> G = Task_G.Result;
+                ConsoleOutPut(); 
+
+                Task.WaitAll(Task_F, Task_G);
+                Task<List<List<int>>> Task_H = Task.Run(() => F7(F, G)); //запуск задачи H после завершения F и G
+                List<List<int>> H = Task_H.Result;
                 ConsoleOutPut(); //вывод строки-разделителя
 
-                Task<List<List<int>>> Task_C = Task.Run(() => Foo1(Task_A.Result, Task_B.Result)); //запуск задачи C
-
-                Task_C.Wait(); //ожидание выполнения задачи С
-
+                Task.WaitAll(Task_B, Task_E, Task_H, Task_D); 
+                Task<double> Task_K = Task.Run(() => F8(B, E, H, D)); //запуск задачи K после завершения B, E, H, D
                 ConsoleOutPut(); //вывод строки-разделителя
 
-                Task<List<int>> Task_D = Task_C.ContinueWith(_Function1 => Foo2(Task_C.Result)); //запуск задачи D, после завершения C
-                Task<List<int>> Task_E = Task_C.ContinueWith(_Function1 => Foo3(Task_C.Result)); //запуск задачи E, после завершения C
-                Task<List<int>> Task_F = Task_C.ContinueWith(_Function1 => Foo4(Task_C.Result)); //запуск задачи F, после завершения C
-
-                Task<int> Task_G = Task_D.ContinueWith(_Function5 => Foo5(Task_D.Result)); //запуск задачи G, после завершения D
-                Task<int> Task_H = Task_E.ContinueWith(_Function4 => Foo6(Task_E.Result)); //запуск задачи H, после завершения E
-
-                Task.WaitAll(Task_G, Task_H, Task_F); //ожидание всех задач к завершению вычислений
-
-                ConsoleOutPut(); //вывод строки-разделителя
-
-                Task<string> Task_K = Task.Run(() => Foo7(Task_G.Result, Task_H.Result)); //запуск задачи K
-
-                Task_K.Wait(); //ожидание задачи К, для вывода результата
-
-                ConsoleOutPut(); //вывод строки-разделителя
+                Task_K.Wait();
 
                 using StreamWriter TaskSelectorWriter = new(FILE_NAME, true);
                 { //открываем файл на запись
@@ -101,20 +109,14 @@ namespace OS_2_ProgressBar
                     TaskSelectorWriter.WriteLine($"\t Task K Id: {Task_K.Id}");
                 }
 
-                Task.Run(async () => //запуск отдельного аснхронной задачи для значений результата
+                Task.Run(async () => //вывод результата в TextBox
                 {
                     await Task.Delay(5000);
                     this.BeginInvoke((Action)delegate ()
                     {
-                        Result.Text = $"{Task_K.Result}"; //вывод результата в элемента TextBox
+                        Result.Text = $"{Task_K.Result}"; 
                     });
                 });
-
-                if (DEBUG) //дебагер для проверки работы алгоритма
-                {
-                    Task Task_Check = Task.Run(() => CheckForResult(Task_C.Result));
-                    Task_Check.Wait();
-                }
 
                 Console.WriteLine("\tMain Task Has Finished"); //завершение основного потока (Main)            
                 Console.WriteLine("\tProgram execution time: {0}", stopWatch.Elapsed); //выводим время выполнения всей программы
@@ -123,22 +125,24 @@ namespace OS_2_ProgressBar
             }
 
         }
-        private List<List<int>> GenerateM()
-        { //создает двумерный массив из чисел в промежутке (-10, 10) 
+
+        //--------------------------------------------------------------------------------------
+        private List<List<int>> Gnrt()
+        { //создает массив из трёх массивов bool
             Stopwatch stopWatch = new(); //запуск таймера в начале задачи
             stopWatch.Start();
 
-            List<List<int>> _GeneratedList = new();
+            List<List<int>> GnrtL = new();
 
-            Random randomInt = new();
 
-            for (int i = 0; i < _n; i++)
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
             {
                 List<int> _list = new();
-                _GeneratedList.Add(_list);
+                GnrtL.Add(_list);
                 for (int j = 0; j < _n; j++)
                 {
-                    _GeneratedList[i].Add(randomInt.Next(-10, 11));
+                    Random randomBool = new Random((int)DateTime.Now.Ticks);
+                    GnrtL[i].Add(randomBool.Next(0, 2));
                 }
             }
 
@@ -151,23 +155,40 @@ namespace OS_2_ProgressBar
                 await Task.Delay(3000);
                 this.BeginInvoke((Action)delegate ()
                 {
-                    BarA.Value = 100;
+                    A.Value = 100;
                 });
             });
 
-            return _GeneratedList;
+            return GnrtL;
         }
-        private List<bool> GenerateR()
-        { //создает массив из true/false размером n
+        //-------------------------------------------------------------------------------------
+
+        private List<List<int>> F1(List<List<int>> GnrtL)
+        { //инвертирует
+
             Stopwatch stopWatch = new(); //запуск таймера в начале задачи
             stopWatch.Start();
 
-            List<bool> _GeneratedList = new();
-            Random randomBool = new();
+            List<List<bool>> GnrtLLL = new();
 
-            for (int i = 0; i < _n; i++)
+
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
             {
-                _GeneratedList.Add(Convert.ToBoolean(randomBool.Next(2)));
+                List<bool> _list = new();
+                GnrtLLL.Add(_list);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL[i][j] == 1) GnrtLLL[i].Add(true);
+                    if (GnrtL[i][j] == 0) GnrtLLL[i].Add(false);
+                }
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    GnrtLLL[i][j] = !GnrtLLL[i][j];
+                }
             }
 
             Console.WriteLine($"\tTask (B) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
@@ -176,241 +197,435 @@ namespace OS_2_ProgressBar
 
             Task.Run(async () =>
             {
-                await Task.Delay(3000);
+                await Task.Delay(3500);
                 this.BeginInvoke((Action)delegate ()
                 {
-                    BarB.Value = 100;
+                    B.Value = 100;
                 });
             });
 
-            return _GeneratedList;
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtLLL[i][j] == true) GnrtL[i][j] = 1;
+                    if (GnrtLLL[i][j] == false) GnrtL[i][j] = 0;
+                }
+            }
+            return GnrtL;
         }
-        private List<List<int>> Foo1(List<List<int>> _GeneratedM, List<bool> _GeneratedR)
-        { //меняет элементы массива на -1;0;1 от true/false
+
+        private List<List<int>> F2(List<List<int>> GnrtL)
+        { //сложение по модулю два с единицей
             Stopwatch stopWatch = new(); //запуск таймера в начале задачи
             stopWatch.Start();
 
-            for (int i = 0; i < _GeneratedM.Count; i++)
+            List<List<bool>> GnrtLLL = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
             {
-                for (int j = 0; j < _GeneratedM.Count; j++)
+                List<bool> _list = new();
+                GnrtLLL.Add(_list);
+                for (int j = 0; j < _n; j++)
                 {
-                    if (_GeneratedM[i][j] > 0 && _GeneratedR[j] == true)
-                        _GeneratedM[i][j] = 1;
-                    else if (_GeneratedM[i][j] < 0 && _GeneratedR[j] == true)
-                        _GeneratedM[i][j] = -1;
-                    else
-                        _GeneratedM[i][j] = 0;
+                    if (GnrtL[i][j] == 1) GnrtLLL[i].Add(true);
+                    if (GnrtL[i][j] == 0) GnrtLLL[i].Add(false);
                 }
             }
 
-            Console.WriteLine($"\tTask (C) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
-
-            Report();
-
-            Task.Run(async () =>
+            for (int i = 0; i < 3; i++)
             {
-                await Task.Delay(3000);
-                this.BeginInvoke((Action)delegate ()
+                for (int j = 0; j < _n; j++)
                 {
-                    BarC.Value = 100;
-                });
-            });
-
-            return _GeneratedM;
-        }
-        private List<int> Foo2(List<List<int>> _Function1)
-        { // записывает индексы всех элементов {-1}
-            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
-            stopWatch.Start();
-
-            List<int> _FunctionTwoResult = new();
-
-            for (int i = 0; i < _Function1.Count; i++)
-            {
-                for (int j = 0; j < _Function1.Count; j++)
-                {
-                    if (_Function1[i][j] == -1)
-                        _FunctionTwoResult.Add(i * _Function1.Count + j);
-
-
+                    GnrtLLL[i][j] = GnrtLLL[i][j] ^ true;
                 }
             }
 
-            Console.WriteLine($"\tTask (D) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
+            Console.WriteLine($"\tTask (B) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
 
             Report();
 
-            Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-                this.BeginInvoke((Action)delegate ()
-                {
-                    BarD.Value = 100;
-                });
-            });
-
-            return _FunctionTwoResult;
-        }
-        private List<int> Foo3(List<List<int>> _Function1)
-        { // записывает индексы всех элементов {0}
-            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
-            stopWatch.Start();
-
-            List<int> _FunctionThreeResult = new();
-
-            for (int i = 0; i < _Function1.Count; i++)
-            {
-                for (int j = 0; j < _Function1.Count; j++)
-                {
-                    if (_Function1[i][j] == 0)
-                        _FunctionThreeResult.Add(i * _Function1.Count + j);
-                }
-            }
-
-            Console.WriteLine($"\tTask (E) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
-
-            Report();
-
-            Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-                this.BeginInvoke((Action)delegate ()
-                {
-                    BarE.Value = 100;
-                });
-            });
-
-            return _FunctionThreeResult;
-        }
-        private List<int> Foo4(List<List<int>> _Function1)
-        { // записывает индексы всех элементов {1}
-            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
-            stopWatch.Start();
-
-            List<int> _FunctionFourResult = new();
-
-            for (int i = 0; i < _Function1.Count; i++)
-            {
-                for (int j = 0; j < _Function1.Count; j++)
-                {
-                    if (_Function1[i][j] == 1)
-                        _FunctionFourResult.Add(i * _Function1.Count + j);
-                }
-            }
-            Console.WriteLine($"\tTask (F) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
-
-            Report();
-
-            Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-                this.BeginInvoke((Action)delegate ()
-                {
-                    BarF.Value = 100;
-                });
-            });
-
-            return _FunctionFourResult;
-        }
-        private int Foo5(List<int> _Function2)
-        { //функция 5 будет отдавать сумму индексов для {-1}
-            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
-            stopWatch.Start();
-
-            int _FunctionFiveResult = 0;
-
-            for (int i = 0; i < _Function2.Count; i++)
-            {
-                _FunctionFiveResult += _Function2[i];
-
-
-            }
-
-            Console.WriteLine($"\tTask (G) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
-
-            Report();
-
-            Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-                this.BeginInvoke((Action)delegate ()
-                {
-                    BarG.Value = 100;
-                });
-            });
-
-            return _FunctionFiveResult;
-        }
-        private int Foo6(List<int> _Function4)
-        { //функция 6 будет отдавать сумму индексов для {1}
-            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
-            stopWatch.Start();
-
-            int _FunctionSixResult = 0;
-
-            for (int i = 0; i < _Function4.Count; i++)
-            {
-                _FunctionSixResult += _Function4[i];
-
-
-            }
-
-            Console.WriteLine($"\tTask (H) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
-
-            Report();
-
-            Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-                this.BeginInvoke((Action)delegate ()
-                {
-                    BarH.Value = 100;
-                });
-            });
-
-            return _FunctionSixResult;
-        }
-        private string Foo7(int _Function5, int _Function6)
-        { //функция 7 бдует сравнивать две суммы, и возращать ответ, каких значений больше {-1} | {1} | Equal
-            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
-            stopWatch.Start();
-
-            string _FunctionSevenResult = _Function5 > _Function6 ? "-1" : _Function5 == _Function6 ? "Equal" : "1";
-            
             Task.Run(async () =>
             {
                 await Task.Delay(3500);
                 this.BeginInvoke((Action)delegate ()
                 {
-                    BarK.Value = 100;
+                    C.Value = 100;
                 });
             });
 
-            Console.WriteLine($"\tTask (K) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtLLL[i][j] == true) GnrtL[i][j] = 1;
+                    if (GnrtLLL[i][j] == false) GnrtL[i][j] = 0;
+                }
+            }
+
+            return GnrtL;
+        }
+
+        private List<List<int>> F3(List<List<int>> GnrtL)
+        { //"И-НЕ" с единицей
+            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
+            stopWatch.Start();
+
+            List<List<bool>> GnrtLLL = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list = new();
+                GnrtLLL.Add(_list);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL[i][j] == 1) GnrtLLL[i].Add(true);
+                    if (GnrtL[i][j] == 0) GnrtLLL[i].Add(false);
+                }
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    GnrtLLL[i][j] = !(GnrtLLL[i][j] & true);
+                }
+            }
+
+            Console.WriteLine($"\tTask (B) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
 
             Report();
 
-            return _FunctionSevenResult;
+            Task.Run(async () =>
+            {
+                await Task.Delay(3500);
+                this.BeginInvoke((Action)delegate ()
+                {
+                    D.Value = 100;
+                });
+            });
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtLLL[i][j] == true) GnrtL[i][j] = 1;
+                    if (GnrtLLL[i][j] == false) GnrtL[i][j] = 0;
+                }
+            }
+
+            return GnrtL;
         }
+
+        private List<List<int>> F4(List<List<int>> GnrtL)
+        { //импликация c нулём
+            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
+            stopWatch.Start();
+
+            List<List<bool>> GnrtLLL = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list = new();
+                GnrtLLL.Add(_list);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL[i][j] == 1) GnrtLLL[i].Add(true);
+                    if (GnrtL[i][j] == 0) GnrtLLL[i].Add(false);
+                }
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+
+                    GnrtLLL[i][j] = !GnrtLLL[i][j] | false;
+                }
+            }
+
+            Console.WriteLine($"\tTask (B) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
+
+            Report();
+
+            Task.Run(async () =>
+            {
+                await Task.Delay(4000);
+                this.BeginInvoke((Action)delegate ()
+                {
+                    E.Value = 100;
+                });
+            });
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtLLL[i][j] == true) GnrtL[i][j] = 1;
+                    if (GnrtLLL[i][j] == false) GnrtL[i][j] = 0;
+                }
+            }
+
+            return GnrtL;
+        }
+
+        private List<List<int>> F5(List<List<int>> GnrtL)
+        { //логическое умножение на самого себя 
+            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
+            stopWatch.Start();
+
+            List<List<bool>> GnrtLLL = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list = new();
+                GnrtLLL.Add(_list);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL[i][j] == 1) GnrtLLL[i].Add(true);
+                    if (GnrtL[i][j] == 0) GnrtLLL[i].Add(false);
+                }
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+
+                    GnrtLLL[i][j] = GnrtLLL[i][j] & GnrtLLL[i][j];
+                }
+            }
+
+            Console.WriteLine($"\tTask (B) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
+
+            Report();
+
+            Task.Run(async () =>
+            {
+                await Task.Delay(4000);
+                this.BeginInvoke((Action)delegate ()
+                {
+                    F.Value = 100;
+                });
+            });
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtLLL[i][j] == true) GnrtL[i][j] = 1;
+                    if (GnrtLLL[i][j] == false) GnrtL[i][j] = 0;
+                }
+            }
+
+            return GnrtL;
+        }
+
+        private List<List<int>> F6(List<List<int>> GnrtL)
+        { //эквивалентность с единицей
+            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
+            stopWatch.Start();
+
+            List<List<bool>> GnrtLLL = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list = new();
+                GnrtLLL.Add(_list);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL[i][j] == 1) GnrtLLL[i].Add(true);
+                    if (GnrtL[i][j] == 0) GnrtLLL[i].Add(false);
+                }
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtLLL[i][j] == true)
+                    {
+                        GnrtLLL[i][j] = true;
+                    }
+                    else {
+                        GnrtLLL[i][j] = false;
+                    }
+                }
+            }
+
+            Console.WriteLine($"\tTask (B) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
+
+            Report();
+
+            Task.Run(async () =>
+            {
+                await Task.Delay(4000);
+                this.BeginInvoke((Action)delegate ()
+                {
+                    G.Value = 100;
+                });
+            });
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtLLL[i][j] == true) GnrtL[i][j] = 1;
+                    if (GnrtLLL[i][j] == false) GnrtL[i][j] = 0;
+                }
+            }
+
+            return GnrtL;
+        }
+
+        private List<List<int>> F7(List<List<int>> GnrtL, List<List<int>> GnrtL1)
+        { //логическое умножение
+            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
+            stopWatch.Start();
+
+            List<List<bool>> GnrtLLL = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list = new();
+                GnrtLLL.Add(_list);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL[i][j] == 1) GnrtLLL[i].Add(true);
+                    if (GnrtL[i][j] == 0) GnrtLLL[i].Add(false);
+                }
+            }
+
+            List<List<bool>> GnrtLLD = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list1 = new();
+                GnrtLLD.Add(_list1);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL1[i][j] == 1) GnrtLLD[i].Add(true);
+                    if (GnrtL1[i][j] == 0) GnrtLLD[i].Add(false);
+                }
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    GnrtLLL[i][j] = GnrtLLL[i][j] & GnrtLLD[i][j];
+                }
+            }
+
+            Console.WriteLine($"\tTask (B) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
+
+            Report();
+
+            Task.Run(async () =>
+            {
+                await Task.Delay(4250);
+                this.BeginInvoke((Action)delegate ()
+                {
+                    H.Value = 100;
+                });
+            });
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtLLL[i][j] == true) GnrtL[i][j] = 1;
+                    if (GnrtLLL[i][j] == false) GnrtL[i][j] = 0;
+                }
+            }
+
+            return GnrtL;
+        }
+
+        private double F8(List<List<int>> GnrtL, List<List<int>> GnrtL1, List<List<int>> GnrtL2, List<List<int>> GnrtL3)
+        { //логическое умножение
+            Stopwatch stopWatch = new(); //запуск таймера в начале задачи
+            stopWatch.Start();
+            double count = 0;
+
+            List<List<bool>> GnrtLLL = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list = new();
+                GnrtLLL.Add(_list);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL[i][j] == 1) GnrtLLL[i].Add(true);
+                    if (GnrtL[i][j] == 0) GnrtLLL[i].Add(false);
+                }
+            }
+
+            List<List<bool>> GnrtLLA = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list1 = new();
+                GnrtLLA.Add(_list1);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL1[i][j] == 1) GnrtLLA[i].Add(true);
+                    if (GnrtL1[i][j] == 0) GnrtLLA[i].Add(false);
+                }
+            }
+
+            List<List<bool>> GnrtLLB = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list2 = new();
+                GnrtLLB.Add(_list2);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL2[i][j] == 1) GnrtLLB[i].Add(true);
+                    if (GnrtL2[i][j] == 0) GnrtLLB[i].Add(false);
+                }
+            }
+
+            List<List<bool>> GnrtLLC = new();
+            for (int i = 0; i < 3; i++) //создание трёх массивов буля
+            {
+                List<bool> _list3 = new();
+                GnrtLLC.Add(_list3);
+                for (int j = 0; j < _n; j++)
+                {
+                    if (GnrtL3[i][j] == 1) GnrtLLC[i].Add(true);
+                    if (GnrtL3[i][j] == 0) GnrtLLC[i].Add(false);
+                }
+            }
+
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < _n; j++)
+                {
+                    GnrtLLL[i][j] = GnrtLLL[i][j] & GnrtLLA[i][j] & GnrtLLB[i][j] & GnrtLLC[i][j];
+                    if (GnrtLLL[i][j] == true) {
+                        count++;
+                    }
+                }
+            }
+
+            count = (count / (_n * 3)) * 100; //находим сколько процентов элементов из всех массивов были равны true
+            count = Math.Round(count, 2); //ограничение на количество выводимых знаков
+
+            Console.WriteLine($"\tTask (B) With Id: {Task.CurrentId} Has Finished Generating With Time: {stopWatch.Elapsed}"); //вывод данных по текущей задаче
+
+            Report();
+
+            Task.Run(async () =>
+            {
+                await Task.Delay(4500);
+                this.BeginInvoke((Action)delegate ()
+                {
+                    K.Value = 100;
+                });
+            });
+            return count;
+        }
+
         static void Report()
         {
-            lock (block) //критический блок кода для разных Task'ов, блокируем, пока его выполняет 1 Task
+            lock (block)
             {
                 using StreamWriter streamWriter = new(FILE_NAME, true); //открываем файл на запись
                 streamWriter.WriteLine($"\t Task With Id: {Task.CurrentId} Has Finished Generating"); //записываем данные Task'а в файл
                 streamWriter.Close(); //закрываем запись в файл
-            }
-        }
-        static void CheckForResult(List<List<int>> _Task_C_Result)
-        { //метод для ручной проверки вычислений (пред-конечная матрица)
-
-            for (int i = 0; i < _Task_C_Result.Count; i++)
-            {
-                for (int j = 0; j < _Task_C_Result.Count; j++)
-                {
-                    Console.Write("\t{0}", _Task_C_Result[i][j]);
-                }
-                Console.WriteLine();
             }
         }
         static void ConsoleOutPut()
